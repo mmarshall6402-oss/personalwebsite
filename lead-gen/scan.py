@@ -38,9 +38,10 @@ load_dotenv()
 
 # --- Edit these for whatever neighborhoods/niches you're prospecting -------
 QUERIES = [
-    "plumbers in Park Slope Brooklyn NY",
-    "hair salons in Astoria Queens NY",
-    "auto repair shops in Jersey City NJ",
+    "plumbers in Houston TX 77025",
+    "hair salons in Houston TX 77025",
+    "auto repair shops in Houston TX 77025",
+    "landscaping lawn care in Houston TX 77025",
 ]
 # ----------------------------------------------------------------------------
 
