@@ -1,0 +1,222 @@
+<!--
+  Personal / business landing page.
+  Quick things to customize:
+    - Line ~34: business/your name, tagline
+    - Line ~90: services list
+    - Line ~110: portfolio/proof section (swap in real project screenshots once you have them)
+    - Line ~140: contact email + phone
+    - CSS custom properties in :root below control the color scheme
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marshall Web Design — Websites for Local Businesses</title>
+<meta name="description" content="Simple, affordable websites for local businesses. Get found on Google, look professional, turn visitors into customers.">
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-elevated: #171a21;
+    --text: #eef0f4;
+    --text-muted: #9aa1ae;
+    --accent: #4f8dfd;
+    --accent-hover: #6ea0ff;
+    --border: #262a34;
+    --radius: 12px;
+    --max-width: 1080px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ffffff;
+      --bg-elevated: #f5f6f8;
+      --text: #14161b;
+      --text-muted: #565d6b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --border: #e4e6eb;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-hover); }
+  .wrap { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+
+  header {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-weight: 700; font-size: 1.1rem; }
+  nav a { margin-left: 24px; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; }
+  nav a:hover { color: var(--text); }
+
+  .hero {
+    padding: 96px 0 80px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero p {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    max-width: 620px;
+    margin: 0 auto 32px;
+  }
+  .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block;
+    padding: 13px 26px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.98rem;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+  .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+
+  section { padding: 64px 0; }
+  section h2 {
+    font-size: 1.8rem;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  section > .wrap > p.section-sub {
+    color: var(--text-muted);
+    margin: 0 0 40px;
+    max-width: 560px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 1.05rem; }
+  .card p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+  .proof {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .contact {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+  }
+  .contact h2 { margin-bottom: 8px; }
+  .contact p { color: var(--text-muted); margin-bottom: 24px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">Marshall Web Design</div>
+    <nav>
+      <a href="#services">Services</a>
+      <a href="#work">Work</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>A website that gets your business found on Google.</h1>
+    <p>Simple, fast, professional websites for local businesses — built and
+       launched in days, not months. No jargon, no bloated monthly fees.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#contact">Get a free quote</a>
+      <a class="btn btn-secondary" href="#work">See the work</a>
+    </div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="wrap">
+    <h2>What you get</h2>
+    <p class="section-sub">Everything a local business needs to look credible online — nothing you don't.</p>
+    <div class="grid-3">
+      <div class="card">
+        <h3>Website design &amp; build</h3>
+        <p>A clean, mobile-friendly site with your hours, services, photos, and contact info — live in days.</p>
+      </div>
+      <div class="card">
+        <h3>Google visibility</h3>
+        <p>Your site linked properly to your Google Business listing, so customers searching for you can actually find it.</p>
+      </div>
+      <div class="card">
+        <h3>Ongoing support</h3>
+        <p>Simple updates when your hours, menu, or services change — no need to touch any code yourself.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="work">
+  <div class="wrap">
+    <h2>Recent work</h2>
+    <p class="section-sub">Examples go here as projects wrap up.</p>
+    <div class="proof">
+      Portfolio coming soon — first few projects will be featured here.
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="contact">
+      <h2>Let's talk about your website</h2>
+      <p>Free, no-pressure quote. Usually get back to you within a day.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="mailto:mmarshall1011@icloud.com?subject=Website%20quote%20request">
+          Email mmarshall1011@icloud.com
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">&copy; <span id="year"></span> Marshall Web Design</div>
+</footer>
+
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!--
+  Standalone viewer for output/prospects.csv.
+  Just open this file in a browser and load the CSV via the file picker —
+  no local server needed, works straight off the filesystem.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prospects Viewer</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-elevated: #171a21;
+    --text: #eef0f4;
+    --text-muted: #9aa1ae;
+    --accent: #4f8dfd;
+    --border: #262a34;
+    --highlight: #3a2e12;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ffffff;
+      --bg-elevated: #f5f6f8;
+      --text: #14161b;
+      --text-muted: #565d6b;
+      --accent: #2563eb;
+      --border: #e4e6eb;
+      --highlight: #fff6d8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  .sub { color: var(--text-muted); margin: 0 0 20px; font-size: 0.92rem; }
+
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  input[type="file"] { color: var(--text); }
+  input[type="text"] {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .count { color: var(--text-muted); font-size: 0.9rem; white-space: nowrap; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; min-width: 900px; }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-elevated);
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  thead th:hover { color: var(--accent); }
+  thead th .arrow { color: var(--accent); margin-left: 4px; }
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    max-width: 260px;
+  }
+  tbody tr:hover { background: var(--bg-elevated); }
+  tbody tr.unlisted { background: var(--highlight); }
+  .empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>Prospects Viewer</h1>
+<p class="sub">Load <code>output/prospects.csv</code> (or any CSV from <code>scan.py</code>) below. Nothing is uploaded — it's parsed locally in your browser.</p>
+
+<div class="toolbar">
+  <input type="file" id="fileInput" accept=".csv">
+  <input type="text" id="filterInput" placeholder="Filter by name, address, or niche..." disabled>
+  <span class="count" id="countLabel"></span>
+</div>
+
+<div class="table-wrap">
+  <table id="table" hidden>
+    <thead><tr id="headerRow"></tr></thead>
+    <tbody id="body"></tbody>
+  </table>
+  <div class="empty" id="emptyState">No CSV loaded yet.</div>
+</div>
+
+<script>
+  const COLUMNS = [
+    { key: "name", label: "Name" },
+    { key: "review_count", label: "Reviews", numeric: true },
+    { key: "rating", label: "Rating", numeric: true },
+    { key: "query", label: "Niche / Query" },
+    { key: "address", label: "Address" },
+    { key: "phone", label: "Phone" },
+    { key: "email", label: "Email" },
+    { key: "pitch_angle", label: "Pitch Angle" },
+    { key: "possible_unlisted_website", label: "Possible Site" },
+    { key: "google_maps_url", label: "Maps" },
+    { key: "notes", label: "Notes" },
+  ];
+
+  let rows = [];
+  let sortKey = "review_count";
+  let sortDir = -1;
+
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], field = "", inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          field += c;
+        }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ",") { row.push(field); field = ""; }
+        else if (c === "\n" || c === "\r") {
+          if (c === "\r" && text[i + 1] === "\n") i++;
+          row.push(field); field = "";
+          if (row.length > 1 || row[0] !== "") rows.push(row);
+          row = [];
+        } else field += c;
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function loadCSV(text) {
+    const raw = parseCSV(text);
+    if (!raw.length) return;
+    const header = raw[0].map((h) => h.trim());
+    rows = raw.slice(1)
+      .filter((r) => r.some((c) => c.trim() !== ""))
+      .map((r) => {
+        const obj = {};
+        header.forEach((h, i) => (obj[h] = (r[i] || "").trim()));
+        obj.review_count = parseInt(obj.review_count, 10) || 0;
+        obj.rating = parseFloat(obj.rating) || 0;
+        return obj;
+      });
+    document.getElementById("filterInput").disabled = false;
+    render();
+  }
+
+  function render() {
+    const filter = document.getElementById("filterInput").value.toLowerCase();
+    let visible = rows.filter((r) =>
+      !filter ||
+      (r.name || "").toLowerCase().includes(filter) ||
+      (r.address || "").toLowerCase().includes(filter) ||
+      (r.query || "").toLowerCase().includes(filter)
+    );
+
+    visible.sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (typeof av === "string") { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+      if (av < bv) return -1 * sortDir;
+      if (av > bv) return 1 * sortDir;
+      return 0;
+    });
+
+    document.getElementById("countLabel").textContent =
+      `${visible.length} of ${rows.length} shown`;
+
+    const headerRow = document.getElementById("headerRow");
+    headerRow.innerHTML = "";
+    COLUMNS.forEach((col) => {
+      const th = document.createElement("th");
+      th.textContent = col.label;
+      if (col.key === sortKey) {
+        const arrow = document.createElement("span");
+        arrow.className = "arrow";
+        arrow.textContent = sortDir === 1 ? "▲" : "▼";
+        th.appendChild(arrow);
+      }
+      th.addEventListener("click", () => {
+        if (sortKey === col.key) sortDir *= -1;
+        else { sortKey = col.key; sortDir = col.numeric ? -1 : 1; }
+        render();
+      });
+      headerRow.appendChild(th);
+    });
+
+    const body = document.getElementById("body");
+    body.innerHTML = "";
+    visible.forEach((r) => {
+      const tr = document.createElement("tr");
+      if (r.possible_unlisted_website) tr.className = "unlisted";
+
+      COLUMNS.forEach((col) => {
+        const td = document.createElement("td");
+        const val = r[col.key] ?? "";
+        if (col.key === "google_maps_url" && val) {
+          const a = document.createElement("a");
+          a.href = val; a.target = "_blank"; a.rel = "noopener";
+          a.textContent = "Open";
+          td.appendChild(a);
+        } else if (col.key === "email" && val) {
+          const a = document.createElement("a");
+          a.href = `mailto:${val}`;
+          a.textContent = val;
+          td.appendChild(a);
+        } else if (col.key === "possible_unlisted_website" && val) {
+          const a = document.createElement("a");
+          a.href = val; a.target = "_blank"; a.rel = "noopener";
+          a.textContent = val.replace(/^https?:\/\//, "");
+          td.appendChild(a);
+        } else {
+          td.textContent = val;
+        }
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+
+    document.getElementById("table").hidden = visible.length === 0 && !rows.length;
+    document.getElementById("emptyState").hidden = rows.length > 0;
+    document.getElementById("table").hidden = rows.length === 0;
+  }
+
+  document.getElementById("fileInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => loadCSV(reader.result);
+    reader.readAsText(file);
+  });
+
+  document.getElementById("filterInput").addEventListener("input", render);
+</script>
+
+</body>
+</html>
