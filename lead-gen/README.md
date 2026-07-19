@@ -3,26 +3,38 @@
 Finds local businesses on Google Maps with no website listed, sorted by
 review count, then generates outreach scripts to pitch them on a new site.
 
+`scan.py` works by driving headless Chromium (Playwright) over the real
+Google Maps site, rather than calling the official Places API. That means:
+
+- **No API key or cost** for the search step.
+- **Against Google's Terms of Service**, and inherently fragile -- Maps'
+  HTML changes without notice, so if the script starts finding 0 results,
+  the selectors in `scan.py` (`extract_place_details`, `collect_listing_urls`)
+  likely need updating to match Maps' current markup.
+- **Runs with pacing by default** (randomized delays between scrolls,
+  listing clicks, and queries; capped results per query) to reduce the
+  chance of the scraping IP getting rate-limited or blocked. If you're
+  getting blocked, widen the `*_DELAY_RANGE` constants and lower
+  `MAX_RESULTS_PER_QUERY` at the top of `scan.py`. If runs feel too slow
+  and you're willing to accept more block risk, tighten them.
+
 ## Setup
 
 ```bash
 cd lead-gen
 pip install -r requirements.txt
+playwright install chromium
 cp .env.example .env
 ```
 
-Fill in `.env`:
+Fill in `.env` (optional):
 
-- **`GOOGLE_API_KEY`** (required) -- a Google Cloud API key with the
-  **Places API (New)** enabled. Places API is metered: Text Search calls
-  cost a small amount per request past the monthly free tier, so keep an
-  eye on `QUERIES` length and `MAX_PAGES_PER_QUERY` in `scan.py`.
-- **`GOOGLE_CSE_ID`** / **`GOOGLE_CSE_KEY`** (optional) -- a Programmable
-  Search Engine (set to search the whole web) + its JSON API key. When
-  set, `scan.py` automates the "10-second Google check": it looks for a
-  website that exists but isn't linked on the business's Google listing,
-  and best-effort scrapes a contact email. Free tier is 100 queries/day.
-  Leave blank and every row will just be flagged for manual lookup instead.
+- **`GOOGLE_CSE_ID`** / **`GOOGLE_CSE_KEY`** -- a Programmable Search
+  Engine (set to search the whole web) + its JSON API key. When set,
+  `scan.py` automates the "10-second Google check": it looks for a website
+  that exists but isn't linked on the business's Google listing, and
+  best-effort scrapes a contact email. Free tier is 100 queries/day. Leave
+  blank and every row will just be flagged for manual lookup instead.
 
 ## Usage
 
