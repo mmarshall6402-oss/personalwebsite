@@ -214,7 +214,7 @@ const save=()=>{
 const TERM={start:'2026-08-17',end:'2026-12-11'};
 const COURSES=[ // fixed schedule, not user-managed
  {id:'cs140',code:'CS 140',c:'#B47CFF',days:[2,4],s:'09:30',e:'10:45',room:'TECH 334',cliff:10,note:'Missing 1/3 of meetings = automatic F'},
- {id:'cs124',code:'CS 124',c:'#9DFF57',days:[2,4],s:'11:00',e:'12:20',room:'',cliff:5,note:'Attendance policy unconfirmed'},
+ {id:'cs124',code:'CS 124',c:'#9DFF57',days:[2,4],s:'11:00',e:'12:15',room:'TB 334',cliff:5,note:'No make-up tests; miss 3 HW or 4 pop quizzes = automatic F; 40min late-to-exam cutoff'},
  {id:'lab',code:'CS 140L',c:'#7CC4FF',days:[2],s:'16:00',e:'18:00',room:'TECH 334/335/338',cliff:5,note:'Lab = 30% of the CS 140 grade'},
  {id:'wan',code:'CS 351',c:'#FFC24B',days:[1,3,5],s:'14:00',e:'15:00',room:'',cliff:4,note:'Attendance every session; excuses need a letter'},
  {id:'hed',code:'HED 341',c:'#FF7CC4',days:[],s:'',e:'',room:'Canvas',cliff:2,note:'Two silent weeks = advisor referral'}];
@@ -236,6 +236,9 @@ const SEED={
   {id:'d2',c:'cs140',l:'Exam 2 — methods, arrays, classes (syllabus says Tue Sep 28, which is a Monday)',d:'2026-09-29',p:1},
   {id:'d3',c:'cs140',l:'Exam 3 — inheritance, polymorphism, interfaces',d:'2026-10-20',p:1},
   {id:'d4',c:'cs140',l:'Exam 4 / Final — GUI, events, generics, threads',d:'2026-11-10',p:1},
+  {id:'d10',c:'cs124',l:'Test 1 — propositions, logic operators, proofs (Ch. 1)',d:'2026-09-29',p:1},
+  {id:'d11',c:'cs124',l:'Test 2 — functions, number systems (Ch. 2–3)',d:'2026-10-27',p:1},
+  {id:'d12',c:'cs124',l:'Final exam (Discrete Math, Ch. 4 & 11 cumulative)',d:'',p:1},
   {id:'d5',c:'wan',l:'Midterm — session 16 (ACLs / NAT)',d:'',p:1},
   {id:'d6',c:'wan',l:'Final — session 31',d:'',p:1},
   {id:'d7',c:'hed',l:'Midterm window CLOSES (Ch 1–6)',d:'2026-10-09',p:0},
@@ -408,7 +411,10 @@ function vSem(){
      'Lab: 4–6 or 4–5:20? Confirm in lab',
      'Confirm the WAN midterm date (session 16)',
      'Ask Lin whether homework by email is fine this term',
-     'Map HED weekly modules to real dates'].map((t,i)=>
+     'Map HED weekly modules to real dates',
+     'CS 124: grading tables disagree — 20/40/40 (HW/Midterm/Final) vs 20% each of HW/quizzes/Test1/Test2/Final — ask Kamel which is real',
+     'CS 124: Test 1 (wk 7) and Test 2 (wk 11) land on Tue or Thu? Guessed the Tuesday',
+     'CS 124: final exam date/time — syllabus outline shows "Week 16" but confirm against the actual TSU finals slot'].map((t,i)=>
     `<div class="item" style="grid-template-columns:auto 1fr">
       <label class="hab" style="margin:0;padding:0;border:0"><input type="checkbox" data-loop="${i}" ${S.loops[i]?'checked':''}></label>
       <div class="l" style="${S.loops[i]?'color:var(--dim);text-decoration:line-through':''}">${t}</div></div>`).join('')}
