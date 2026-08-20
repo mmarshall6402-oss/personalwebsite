@@ -207,7 +207,7 @@ const WEIGHTS={
 
 const LV=['NOT STARTED','SHAKY','SOLID','CAN TEACH IT'];
 const GAP=[0,2,5,12];                       // days until it comes back
-const TABS=[['drill','Drill'],['topics','Topics'],['exams','Exams'],['grades','Grades']];
+const TABS=[['drill','Drill'],['topics','Topics'],['exams','Exams'],['grades','Grades'],['board','Board']];
 const $=i=>document.getElementById(i);
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
@@ -324,7 +324,9 @@ function render(){
   $('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join('');
   $('view').innerHTML={drill:vDrill,topics:vTopics,exams:vExams,grades:vGrades}[tab]();
   const on=(q,f)=>document.querySelectorAll(q).forEach(f);
-  on('[data-tab]',b=>b.onclick=()=>{tab=b.dataset.tab;render()});
+  on('[data-tab]',b=>b.onclick=()=>{
+    if(b.dataset.tab==='board'){location.href='/';return}
+    tab=b.dataset.tab;render()});
   on('[data-r]',b=>b.onclick=()=>{const[id,lv]=b.dataset.r.split(':');rate(id,+lv)});
   on('[data-skip]',b=>b.onclick=()=>{S.topics[b.dataset.skip].due=addDays(TODAY,1);save();render()});
   on('[data-c]',b=>b.onclick=()=>{course=b.dataset.c;render()});

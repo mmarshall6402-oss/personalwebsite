@@ -264,7 +264,7 @@ const TIERS=[{t:0,l:'TIER 0',s:'EXISTENTIAL',n:'Fail here and nothing else matte
  {t:3,l:'FROZEN',s:'REVISIT JANUARY',n:'Parked, not deleted',c:'#8E86A8'}];
 const SLOTS=['AM','MIDDAY','PM','NIGHT'];
 const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const TABS=[['today','Today'],['cal','Calendar'],['week','Week'],['tracks','Tracks'],['sem','Semester']];
+const TABS=[['today','Today'],['cal','Calendar'],['week','Week'],['tracks','Tracks'],['sem','Semester'],['drill','Drill']];
 
 /* ---------- helpers ---------- */
 const $=i=>document.getElementById(i);
@@ -299,7 +299,9 @@ const paintStatus=()=>{const e=$('stor');if(!e)return;
 function renderShell(){
   $('stamp').innerHTML=`Week <b>${week()}</b> of 16<br>${DOW[TODAY.getDay()]} ${TODAY.toLocaleDateString(undefined,{month:'short',day:'numeric'})}<br>Term ends Dec 11`;
   $('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join('');
-  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.tab==='drill'){location.href='/drill/';return}
+    tab=b.dataset.tab;render()});
 }
 function vToday(){
   const w=TODAY.getDay(),k=iso(TODAY),ev=eventsOn(TODAY);
