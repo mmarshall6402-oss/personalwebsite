@@ -277,13 +277,13 @@ let S=null,tab='today',cur=new Date(),sel=null,TODAY=new Date();
 let canvasItems=null,canvasLoading=false,canvasErr=null;
 async function loadCanvas(force){
   if(canvasLoading||(canvasItems&&!force))return;
-  canvasLoading=true;canvasErr=null;if(tab==='sem')render();
+  canvasLoading=true;canvasErr=null;render();
   try{
     const r=await fetch('/api/canvas'),j=await r.json();
     if(!r.ok)throw new Error(r.status===503?'Canvas not configured — set CANVAS_BASE_URL and CANVAS_TOKEN in Vercel':(j.error||'sync failed'));
     canvasItems=j.assignments;
   }catch(e){canvasErr=String(e.message||e)}
-  finally{canvasLoading=false;if(tab==='sem')render()}
+  finally{canvasLoading=false;render()}
 }
 const day0=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
 const daysTo=s=>Math.round((parse(s)-day0(TODAY))/864e5);
@@ -297,6 +297,7 @@ function eventsOn(d){
     (S.study||[]).filter(x=>x.d===w).forEach(x=>out.push({t:x.s,n:x.n,c:'#9DFF57',kind:'study'}));
   }
   S.dates.filter(x=>x.d===k).forEach(x=>out.push({t:'',n:x.l,c:(cOf(x.c)||{}).c||'#FF4D6D',kind:'due'}));
+  (canvasItems||[]).filter(x=>x.due_at.slice(0,10)===k).forEach(x=>out.push({t:'',n:x.title+(x.course?' · '+x.course:''),c:'#FFC24B',kind:'canvas'}));
   (S.events||[]).filter(x=>x.d===k).forEach(x=>out.push({t:x.t||'',n:x.n,c:'#EDE9F7',kind:'mine',id:x.id}));
   return out.sort((a,b)=>(a.t||'99').localeCompare(b.t||'99'));
 }
@@ -312,11 +313,13 @@ function renderShell(){
   $('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join('');
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
     if(b.dataset.tab==='drill'){location.href='/drill/';return}
-    tab=b.dataset.tab;render();if(tab==='sem')loadCanvas()});
+    tab=b.dataset.tab;render()});
 }
 function vToday(){
   const w=TODAY.getDay(),k=iso(TODAY),ev=eventsOn(TODAY);
-  const next=[...S.dates].filter(x=>x.d&&daysTo(x.d)>=0).sort((a,b)=>a.d<b.d?-1:1)[0];
+  const dtNext=[...S.dates].filter(x=>x.d&&daysTo(x.d)>=0).sort((a,b)=>a.d<b.d?-1:1)[0];
+  const cvNext=(canvasItems||[]).filter(x=>daysTo(x.due_at.slice(0,10))>=0).sort((a,b)=>a.due_at<b.due_at?-1:1)[0];
+  const next=[dtNext&&{d:dtNext.d,l:dtNext.l},cvNext&&{d:cvNext.due_at.slice(0,10),l:cvNext.title}].filter(Boolean).sort((a,b)=>a.d<b.d?-1:1)[0];
   const starred=S.tracks.flatMap(t=>t.tasks.map((x,i)=>({...x,ti:t.id,ki:i,tn:t.name}))).filter(x=>x.slot&&!x.done);
   return `<section><div class="hero">
     <span class="eyebrow">${TODAY.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</span>
@@ -518,6 +521,7 @@ document.addEventListener('visibilitychange',async()=>{
   S=Object.assign(JSON.parse(JSON.stringify(SEED)),local?JSON.parse(local):{});
   sel=iso(TODAY);cur=new Date(TODAY);
   render();
+  loadCanvas();
   const remote=await pull();
   if(remote){S=mergeState(S,remote);lset(LKEY,JSON.stringify(S))}
   render();
