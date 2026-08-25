@@ -1,5 +1,5 @@
-const BASE = process.env.CANVAS_BASE_URL;   // e.g. https://yourschool.instructure.com
-const TOKEN = process.env.CANVAS_TOKEN;      // Canvas → Account → Settings → New Access Token
+const BASE = (process.env.CANVAS_BASE_URL || '').trim();   // e.g. https://yourschool.instructure.com
+const TOKEN = (process.env.CANVAS_TOKEN || '').trim();      // Canvas → Account → Settings → New Access Token
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
