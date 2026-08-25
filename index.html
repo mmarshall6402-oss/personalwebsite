@@ -274,6 +274,17 @@ const fmt=t=>{const[h,m]=t.split(':');return`${+h%12||12}:${m}${+h<12?'a':'p'}`}
 const slotOf=t=>{const h=+t.slice(0,2);return h<12?'AM':h<16?'MIDDAY':h<20?'PM':'NIGHT'};
 const cOf=id=>COURSES.find(c=>c.id===id);
 let S=null,tab='today',cur=new Date(),sel=null,TODAY=new Date();
+let canvasItems=null,canvasLoading=false,canvasErr=null;
+async function loadCanvas(force){
+  if(canvasLoading||(canvasItems&&!force))return;
+  canvasLoading=true;canvasErr=null;if(tab==='sem')render();
+  try{
+    const r=await fetch('/api/canvas'),j=await r.json();
+    if(!r.ok)throw new Error(r.status===503?'Canvas not configured — set CANVAS_BASE_URL and CANVAS_TOKEN in Vercel':(j.error||'sync failed'));
+    canvasItems=j.assignments;
+  }catch(e){canvasErr=String(e.message||e)}
+  finally{canvasLoading=false;if(tab==='sem')render()}
+}
 const day0=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
 const daysTo=s=>Math.round((parse(s)-day0(TODAY))/864e5);
 const week=()=>Math.floor((day0(TODAY)-parse(TERM.start))/6048e5)+1;
@@ -301,7 +312,7 @@ function renderShell(){
   $('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join('');
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
     if(b.dataset.tab==='drill'){location.href='/drill/';return}
-    tab=b.dataset.tab;render()});
+    tab=b.dataset.tab;render();if(tab==='sem')loadCanvas()});
 }
 function vToday(){
   const w=TODAY.getDay(),k=iso(TODAY),ev=eventsOn(TODAY);
@@ -408,6 +419,14 @@ function vSem(){
       <div class="l">${x.l}<span>${c?c.code:''}${x.d?' · '+parse(x.d).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):''} · ${x.p?'provisional':'confirmed'}</span></div>
       <div>${x.p?`<button class="btn sm go" data-conf="${x.id}">Confirm</button>`:''}</div></div>`}).join('')}
   </section>
+  <section><div class="head"><h2>Canvas assignments</h2><span class="eyebrow">${canvasLoading?'syncing…':canvasErr?'sync failed':canvasItems?'live from Canvas':''}</span></div>
+  ${!canvasItems&&!canvasLoading?'<button class="btn go" id="cvSync">Sync Canvas</button>':''}
+  ${canvasErr?`<p class="mut" style="margin-top:8px">${canvasErr}</p>`:''}
+  ${canvasItems?(canvasItems.length?canvasItems.map(x=>{const n=daysTo(x.due_at.slice(0,10));
+    return `<div class="item ${n<=3?'soon':''}"><div class="d">${n}<small>days</small></div>
+      <div class="l"><a href="${x.url}" target="_blank" rel="noopener" style="color:inherit">${x.title}</a><span>${x.course}${x.points!=null?' · '+x.points+' pts':''}</span></div>
+      <div></div></div>`}).join(''):'<p class="empty">Nothing due.</p>'):''}
+  </section>
   <section><div class="head"><h2>Open loops</h2><span class="eyebrow">unverified</span></div>
   ${['Exam 2: syllabus says "Tue Sep 28" but that is a Monday — ask Lin',
      'Lab: 4–6 or 4–5:20? Confirm in lab',
@@ -446,6 +465,7 @@ function render(){
   on('[data-conf]',b=>b.onclick=()=>{const x=S.dates.find(d=>d.id===b.dataset.conf);
     if(!x.d){const v=prompt('Date (YYYY-MM-DD)');if(!v)return;x.d=v}x.p=0;save();render()});
   on('[data-loop]',b=>b.onchange=()=>{S.loops[b.dataset.loop]=b.checked;save();render()});
+  if($('cvSync'))$('cvSync').onclick=()=>loadCanvas(true);
   on('[data-day]',b=>b.onclick=()=>{sel=b.dataset.day;render()});
   on('[data-delev]',b=>b.onclick=()=>{S.events=S.events.filter(e=>e.id!==b.dataset.delev);save();render()});
   on('[data-delst]',b=>b.onclick=()=>{S.study=S.study.filter(x=>x.id!==b.dataset.delst);save();render()});
