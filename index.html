@@ -214,7 +214,7 @@ const save=()=>{
 const TERM={start:'2026-08-17',end:'2026-12-11'};
 const COURSES=[ // fixed schedule, not user-managed
  {id:'cs140',code:'CS 140',c:'#B47CFF',days:[2,4],s:'09:30',e:'10:45',room:'TECH 334',cliff:10,note:'Missing 1/3 of meetings = automatic F'},
- {id:'cs124',code:'CS 124',c:'#9DFF57',days:[2,4],s:'11:00',e:'12:15',room:'TB 334',cliff:5,note:'No make-up tests; miss 3 HW or 4 pop quizzes = automatic F; 40min late-to-exam cutoff'},
+ {id:'cs124',code:'CS 124',c:'#9DFF57',days:[2,4],s:'11:00',e:'12:15',room:'TB 335',cliff:5,note:'No make-up tests; miss 3 HW or 4 pop quizzes = automatic F; 40min late-to-exam cutoff'},
  {id:'lab',code:'CS 140L',c:'#7CC4FF',days:[2],s:'16:00',e:'18:00',room:'TECH 334/335/338',cliff:5,note:'Lab = 30% of the CS 140 grade'},
  {id:'wan',code:'CS 351',c:'#FFC24B',days:[1,3,5],s:'14:00',e:'15:00',room:'',cliff:4,note:'Attendance every session; excuses need a letter'},
  {id:'hed',code:'HED 341',c:'#FF7CC4',days:[],s:'',e:'',room:'Canvas',cliff:2,note:'Two silent weeks = advisor referral'}];
@@ -264,7 +264,7 @@ const TIERS=[{t:0,l:'TIER 0',s:'EXISTENTIAL',n:'Fail here and nothing else matte
  {t:3,l:'FROZEN',s:'REVISIT JANUARY',n:'Parked, not deleted',c:'#8E86A8'}];
 const SLOTS=['AM','MIDDAY','PM','NIGHT'];
 const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const TABS=[['today','Today'],['cal','Calendar'],['week','Week'],['tracks','Tracks'],['sem','Semester']];
+const TABS=[['today','Today'],['cal','Calendar'],['week','Week'],['tracks','Tracks'],['sem','Semester'],['drill','Drill']];
 
 /* ---------- helpers ---------- */
 const $=i=>document.getElementById(i);
@@ -274,6 +274,17 @@ const fmt=t=>{const[h,m]=t.split(':');return`${+h%12||12}:${m}${+h<12?'a':'p'}`}
 const slotOf=t=>{const h=+t.slice(0,2);return h<12?'AM':h<16?'MIDDAY':h<20?'PM':'NIGHT'};
 const cOf=id=>COURSES.find(c=>c.id===id);
 let S=null,tab='today',cur=new Date(),sel=null,TODAY=new Date();
+let canvasItems=null,canvasLoading=false,canvasErr=null;
+async function loadCanvas(force){
+  if(canvasLoading||(canvasItems&&!force))return;
+  canvasLoading=true;canvasErr=null;render();
+  try{
+    const r=await fetch('/api/canvas'),j=await r.json();
+    if(!r.ok)throw new Error(r.status===503?'Canvas not configured — set CANVAS_BASE_URL and CANVAS_TOKEN in Vercel':(j.error||'sync failed'));
+    canvasItems=j.assignments;
+  }catch(e){canvasErr=String(e.message||e)}
+  finally{canvasLoading=false;render()}
+}
 const day0=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
 const daysTo=s=>Math.round((parse(s)-day0(TODAY))/864e5);
 const week=()=>Math.floor((day0(TODAY)-parse(TERM.start))/6048e5)+1;
@@ -286,6 +297,7 @@ function eventsOn(d){
     (S.study||[]).filter(x=>x.d===w).forEach(x=>out.push({t:x.s,n:x.n,c:'#9DFF57',kind:'study'}));
   }
   S.dates.filter(x=>x.d===k).forEach(x=>out.push({t:'',n:x.l,c:(cOf(x.c)||{}).c||'#FF4D6D',kind:'due'}));
+  (canvasItems||[]).filter(x=>x.due_at.slice(0,10)===k).forEach(x=>out.push({t:'',n:x.title+(x.course?' · '+x.course:''),c:'#FFC24B',kind:'canvas'}));
   (S.events||[]).filter(x=>x.d===k).forEach(x=>out.push({t:x.t||'',n:x.n,c:'#EDE9F7',kind:'mine',id:x.id}));
   return out.sort((a,b)=>(a.t||'99').localeCompare(b.t||'99'));
 }
@@ -299,11 +311,15 @@ const paintStatus=()=>{const e=$('stor');if(!e)return;
 function renderShell(){
   $('stamp').innerHTML=`Week <b>${week()}</b> of 16<br>${DOW[TODAY.getDay()]} ${TODAY.toLocaleDateString(undefined,{month:'short',day:'numeric'})}<br>Term ends Dec 11`;
   $('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join('');
-  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.tab==='drill'){location.href='/drill/';return}
+    tab=b.dataset.tab;render()});
 }
 function vToday(){
   const w=TODAY.getDay(),k=iso(TODAY),ev=eventsOn(TODAY);
-  const next=[...S.dates].filter(x=>x.d&&daysTo(x.d)>=0).sort((a,b)=>a.d<b.d?-1:1)[0];
+  const dtNext=[...S.dates].filter(x=>x.d&&daysTo(x.d)>=0).sort((a,b)=>a.d<b.d?-1:1)[0];
+  const cvNext=(canvasItems||[]).filter(x=>daysTo(x.due_at.slice(0,10))>=0).sort((a,b)=>a.due_at<b.due_at?-1:1)[0];
+  const next=[dtNext&&{d:dtNext.d,l:dtNext.l},cvNext&&{d:cvNext.due_at.slice(0,10),l:cvNext.title}].filter(Boolean).sort((a,b)=>a.d<b.d?-1:1)[0];
   const starred=S.tracks.flatMap(t=>t.tasks.map((x,i)=>({...x,ti:t.id,ki:i,tn:t.name}))).filter(x=>x.slot&&!x.done);
   return `<section><div class="hero">
     <span class="eyebrow">${TODAY.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</span>
@@ -406,6 +422,14 @@ function vSem(){
       <div class="l">${x.l}<span>${c?c.code:''}${x.d?' · '+parse(x.d).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):''} · ${x.p?'provisional':'confirmed'}</span></div>
       <div>${x.p?`<button class="btn sm go" data-conf="${x.id}">Confirm</button>`:''}</div></div>`}).join('')}
   </section>
+  <section><div class="head"><h2>Canvas assignments</h2><span class="eyebrow">${canvasLoading?'syncing…':canvasErr?'sync failed':canvasItems?'live from Canvas':''}</span></div>
+  ${!canvasItems&&!canvasLoading?'<button class="btn go" id="cvSync">Sync Canvas</button>':''}
+  ${canvasErr?`<p class="mut" style="margin-top:8px">${canvasErr}</p>`:''}
+  ${canvasItems?(canvasItems.length?canvasItems.map(x=>{const n=daysTo(x.due_at.slice(0,10));
+    return `<div class="item ${n<=3?'soon':''}"><div class="d">${n}<small>days</small></div>
+      <div class="l"><a href="${x.url}" target="_blank" rel="noopener" style="color:inherit">${x.title}</a><span>${x.course}${x.points!=null?' · '+x.points+' pts':''}</span></div>
+      <div></div></div>`}).join(''):'<p class="empty">Nothing due.</p>'):''}
+  </section>
   <section><div class="head"><h2>Open loops</h2><span class="eyebrow">unverified</span></div>
   ${['Exam 2: syllabus says "Tue Sep 28" but that is a Monday — ask Lin',
      'Lab: 4–6 or 4–5:20? Confirm in lab',
@@ -444,6 +468,7 @@ function render(){
   on('[data-conf]',b=>b.onclick=()=>{const x=S.dates.find(d=>d.id===b.dataset.conf);
     if(!x.d){const v=prompt('Date (YYYY-MM-DD)');if(!v)return;x.d=v}x.p=0;save();render()});
   on('[data-loop]',b=>b.onchange=()=>{S.loops[b.dataset.loop]=b.checked;save();render()});
+  if($('cvSync'))$('cvSync').onclick=()=>loadCanvas(true);
   on('[data-day]',b=>b.onclick=()=>{sel=b.dataset.day;render()});
   on('[data-delev]',b=>b.onclick=()=>{S.events=S.events.filter(e=>e.id!==b.dataset.delev);save();render()});
   on('[data-delst]',b=>b.onclick=()=>{S.study=S.study.filter(x=>x.id!==b.dataset.delst);save();render()});
@@ -496,6 +521,7 @@ document.addEventListener('visibilitychange',async()=>{
   S=Object.assign(JSON.parse(JSON.stringify(SEED)),local?JSON.parse(local):{});
   sel=iso(TODAY);cur=new Date(TODAY);
   render();
+  loadCanvas();
   const remote=await pull();
   if(remote){S=mergeState(S,remote);lset(LKEY,JSON.stringify(S))}
   render();

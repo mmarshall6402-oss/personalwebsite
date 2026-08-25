@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRILL — Fall 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0C1310;--p1:#132019;--p2:#1B2C22;--line:#26402F;
+--lime:#9DFF57;--violet:#B47CFF;--flare:#FF4D6D;--amber:#FFC24B;--sky:#7CC4FF;
+--ink:#E8F5EA;--dim:#7C9686;
+--disp:'Archivo Black',system-ui,sans-serif;--body:'Space Grotesk',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.45;
+background-image:radial-gradient(110% 50% at 50% -8%,rgba(157,255,87,.10),transparent 62%);
+background-attachment:fixed;padding-bottom:74px}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.eyebrow{font:700 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+h2{font-family:var(--disp);font-size:14px;text-transform:uppercase}
+button{font-family:var(--body);cursor:pointer;border:none;background:none;color:inherit}
+.btn{border:1px solid var(--line);background:var(--p1);border-radius:7px;padding:7px 12px;font:500 13px var(--body)}
+.btn:hover{border-color:var(--lime)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.go{border-color:rgba(157,255,87,.45);color:var(--lime)}
+.btn.bad{border-color:rgba(255,77,109,.45);color:var(--flare)}
+:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+input,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--ink);padding:8px 10px;font:400 14px var(--body)}
+.mut{font:400 12px/1.55 var(--mono);color:var(--dim)}
+header{padding:32px 0 0}
+.mast{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.mast h1{font-family:var(--disp);font-size:clamp(30px,7vw,54px);line-height:.9;letter-spacing:-.02em}
+.mast h1 em{font-style:normal;color:var(--lime)}
+.goal{font:700 11px/1.8 var(--mono);color:var(--dim);text-align:right;text-transform:uppercase;letter-spacing:.1em}
+.goal b{color:var(--lime)}
+.tabs{display:flex;gap:4px;margin:20px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{padding:11px 14px;font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--lime);border-bottom-color:var(--lime)}
+section{margin-top:24px}
+.head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:14px}
+.q{border:1px solid var(--line);border-left:3px solid var(--lime);border-radius:12px;background:var(--p1);padding:18px;margin-bottom:12px}
+.q .c{font:700 11px var(--mono);letter-spacing:.1em}
+.q .t{font-family:var(--disp);font-size:clamp(17px,3.4vw,23px);line-height:1.2;margin:8px 0 4px}
+.q .why{font:400 12px var(--mono);color:var(--dim)}
+.rate{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;padding-top:13px;border-top:1px dashed var(--line)}
+.big{border:1px solid var(--line);border-radius:12px;background:var(--p1);padding:20px;text-align:center}
+.big b{display:block;font-family:var(--disp);font-size:38px;line-height:1;color:var(--lime)}
+.row{display:flex;gap:9px;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--p1);margin-bottom:7px;font-size:13px}
+.row .lv{width:74px;font:700 10px var(--mono);letter-spacing:.06em;flex:none}
+.row .nm{flex:1;min-width:0}
+.row .due{font:400 10px var(--mono);color:var(--dim)}
+.l0{color:var(--dim)}.l1{color:var(--flare)}.l2{color:var(--amber)}.l3{color:var(--lime)}
+.meter{display:flex;height:7px;border-radius:4px;overflow:hidden;border:1px solid var(--line);margin:9px 0 3px}
+.meter i{display:block;height:100%}
+.card{border:1px solid var(--line);border-radius:12px;background:var(--p1);padding:16px;margin-bottom:12px}
+.card.soon{border-color:rgba(255,77,109,.5)}
+.card h3{font-family:var(--disp);font-size:15px;margin-bottom:3px}
+.d{font-family:var(--disp);font-size:26px;color:var(--violet);line-height:1}
+.d.soon{color:var(--flare)}
+.plan{display:grid;gap:6px;margin-top:12px}
+.step{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;font-size:12.5px;
+border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg)}
+.step.now{border-color:var(--lime)}
+.step.past{opacity:.45}
+.step b{font:700 10px var(--mono);color:var(--dim)}
+.step.done span{text-decoration:line-through;color:var(--dim)}
+.gr{display:grid;grid-template-columns:1fr 66px 66px;gap:8px;align-items:center;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)}
+.gr .h{font:700 10px var(--mono);color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.need{font-family:var(--disp);font-size:30px;line-height:1.1}
+.status{position:fixed;left:0;right:0;bottom:0;padding:7px 16px;font:400 11px var(--mono);
+background:var(--p2);border-top:1px solid var(--line);color:var(--dim);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.status b{color:var(--lime)}.status b.warn{color:var(--amber)}
+@media(max-width:700px){.goal{text-align:left}.gr{grid-template-columns:1fr 56px 56px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="mast"><h1>DRILL<br><em>FALL 26</em></h1><div class="goal" id="goal"></div></div>
+  <div class="tabs" id="tabs"></div>
+</header>
+<main id="view"></main>
+</div>
+<div class="status">
+  <span id="stor">…</span>
+  <button class="btn sm" id="exp">Export</button>
+  <label class="btn sm">Import<input id="imp" type="file" accept="application/json" hidden></label>
+  <button class="btn sm bad" id="reset">Reset</button>
+</div>
+<script>
+/* ---------- storage: artifact → browser → memory ---------- */
+const KEY='drill-fall26';let mode='memory',mem=null;
+const lget=k=>{try{return localStorage.getItem(k)}catch{return null}};
+const lset=(k,v)=>{try{localStorage.setItem(k,v)}catch{}};
+async function initStore(){
+  try{if(window.storage){await window.storage.set(KEY+':p','1');mode='synced';return}}catch{}
+  try{localStorage.setItem(KEY+':p','1');mode='local';return}catch{}
+  mode='memory';
+}
+async function loadState(){
+  try{
+    if(mode==='synced')return JSON.parse((await window.storage.get(KEY)).value);
+    if(mode==='local'){const v=lget(KEY);return v?JSON.parse(v):null}
+    return mem;
+  }catch{return null}
+}
+async function saveState(){
+  const s=JSON.stringify(S);
+  try{
+    if(mode==='synced')return void await window.storage.set(KEY,s);
+    if(mode==='local')return void lset(KEY,s);
+    mem=JSON.parse(s);
+  }catch{mode='memory';mem=JSON.parse(s)}
+}
+let ts=null;const save=()=>{clearTimeout(ts);ts=setTimeout(saveState,300)};
+
+/* ---------- courses, topics, exams ---------- */
+const COURSES={
+ cs140:{code:'CS 140',name:'Java',c:'#B47CFF'},
+ cs124:{code:'CS 124',name:'Discrete Math',c:'#9DFF57'},
+ wan:{code:'CS 351',name:'WAN Technologies',c:'#FFC24B'},
+ hed:{code:'HED 341',name:'Epidemiology',c:'#FF7CC4'}};
+
+/* every topic is phrased as a thing you DO from blank, not a thing you read */
+const TOPICS=[
+ ['cs140','e1','Declare every primitive type and print them'],
+ ['cs140','e1','Write an if/else chain and the same logic as a switch'],
+ ['cs140','e1','Write for, while, and do-while versions of one loop'],
+ ['cs140','e1','Read keyboard input with Scanner and use it'],
+ ['cs140','e1','Temperature converter from a one-line description'],
+ ['cs140','e1','Count vowels in a string, from blank'],
+ ['cs140','e2','Write a method with parameters and a return value'],
+ ['cs140','e2','Overload one method three ways'],
+ ['cs140','e2','Declare, fill, and traverse an array without an off-by-one'],
+ ['cs140','e2','Find max/min/average in an array from blank'],
+ ['cs140','e2','Class with fields, constructor, and 3 methods, from blank'],
+ ['cs140','e2','Explain out loud: what a constructor does and when it runs'],
+ ['cs140','e3','Build Shape → Circle/Rectangle and rebuild it from blank'],
+ ['cs140','e3','Override a method and call super'],
+ ['cs140','e3','Explain out loud: overriding vs overloading'],
+ ['cs140','e3','Write an abstract class and a concrete subclass'],
+ ['cs140','e3','Write an interface and implement it twice'],
+ ['cs140','e3','Explain out loud: why an interface is not a class'],
+ ['cs140','e3','try/catch/finally, and throw a checked exception'],
+ ['cs140','e4','Lay out a small Swing window from blank'],
+ ['cs140','e4','Wire a button to an ActionListener'],
+ ['cs140','e4','Write a generic method and a generic class'],
+ ['cs140','e4','Start a thread two different ways'],
+ ['cs124','t1','Build a truth table for any compound proposition'],
+ ['cs124','t1','Translate English to logic with quantifiers, both directions'],
+ ['cs124','t1','Direct proof, from blank'],
+ ['cs124','t1','Proof by contrapositive, from blank'],
+ ['cs124','t1','Proof by contradiction, from blank'],
+ ['cs124','t1','Proof by induction, from blank'],
+ ['cs124','t1','Set operations, Venn reasoning, power sets, Cartesian products'],
+ ['cs124','t1','Relations: reflexive, symmetric, transitive — prove or disprove'],
+ ['cs124','t2','Sequences and summation notation'],
+ ['cs124','t2','Functions: injective, surjective, bijective — prove which'],
+ ['cs124','t2','Compose functions and find inverses'],
+ ['cs124','t2','Convert between binary, decimal, hex, octal by hand'],
+ ['cs124','t2','Binary arithmetic and two\u2019s complement'],
+ ['cs124','fin','Trace an algorithm and state its complexity'],
+ ['cs124','fin','Boolean algebra: simplify with the identities'],
+ ['cs124','fin','Draw the gate diagram for a Boolean expression'],
+ ['cs124','fin','Karnaugh map / minimization'],
+ ['wan','mid','Read a routing table and predict the forwarding decision'],
+ ['wan','mid','OSPFv2 concepts: areas, LSAs, DR/BDR election'],
+ ['wan','mid','Configure single-area OSPFv2 in Packet Tracer from blank'],
+ ['wan','mid','Network security concepts: threats, mitigation'],
+ ['wan','mid','ACL concepts: standard vs extended, placement rules'],
+ ['wan','mid','Write and apply an IPv4 ACL from blank'],
+ ['wan','mid','Configure static NAT, dynamic NAT, and PAT'],
+ ['wan','fin','WAN concepts and access technologies'],
+ ['wan','fin','VPN and IPsec: the pieces and what each does'],
+ ['wan','fin','QoS: queuing, marking, policing vs shaping'],
+ ['wan','fin','Network management: SNMP, syslog, NetFlow'],
+ ['wan','fin','Hierarchical network design'],
+ ['wan','fin','Troubleshooting methodology, applied to a broken topology'],
+ ['wan','fin','Virtualization and automation concepts'],
+ ['hed','mid','Module topics — fill these in from Canvas'],
+ ['hed','fin','Module topics — fill these in from Canvas']];
+
+const EXAMS=[
+ {id:'e1',c:'cs140',n:'CS 140 Exam 1',d:'2026-09-08',p:1},
+ {id:'t1',c:'cs124',n:'CS 124 Test 1',d:'2026-09-29',p:1},
+ {id:'e2',c:'cs140',n:'CS 140 Exam 2',d:'2026-09-29',p:1},
+ {id:'hmid',c:'hed',n:'HED 341 Midterm window closes',d:'2026-10-09',p:0},
+ {id:'e3',c:'cs140',n:'CS 140 Exam 3',d:'2026-10-20',p:1},
+ {id:'t2',c:'cs124',n:'CS 124 Test 2',d:'2026-10-27',p:1},
+ {id:'e4',c:'cs140',n:'CS 140 Exam 4 / Final',d:'2026-11-10',p:1},
+ {id:'mid',c:'wan',n:'CS 351 Midterm (session 16)',d:'',p:1},
+ {id:'fin',c:'cs124',n:'CS 124 Final',d:'2026-12-10',p:1}];
+
+/* exam protocol — the 7/5/3/1 pattern, generated per exam */
+const PROTO=[[7,'One page: every topic covered so far. Nothing else.'],
+ [5,'Rebuild every in-class example from blank, no notes.'],
+ [3,'Five problems from a one-line description each.'],
+ [1,'By hand, on paper. The exam is on paper.']];
+
+/* grade weights straight off the syllabi */
+const WEIGHTS={
+ cs140:[['Exams (4)',40],['Labs / programming',30],['Homework',20],['Attendance',10]],
+ cs124:[['Homework',20],['Pop quizzes',20],['Test 1',20],['Test 2',20],['Final',20]],
+ wan:[['Enter your weights',100]],
+ hed:[['Problem sets (5)',25],['Discussions (6)',15],['Midterm',20],['Outbreak project',15],['Final',25]]};
+
+const LV=['NOT STARTED','SHAKY','SOLID','CAN TEACH IT'];
+const GAP=[0,2,5,12];                       // days until it comes back
+const TABS=[['drill','Drill'],['topics','Topics'],['exams','Exams'],['grades','Grades'],['board','Board']];
+const $=i=>document.getElementById(i);
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+let TODAY=new Date(),tab='drill',S=null,course='all';
+const day0=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
+const daysTo=s=>Math.round((parse(s)-day0(TODAY))/864e5);
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return iso(x)};
+const tid=(c,g,i)=>c+'-'+g+'-'+i;
+
+function seed(){
+  const t={};TOPICS.forEach(([c,g,n],i)=>t[tid(c,g,i)]={c,g,n,lv:0,due:iso(TODAY)});
+  return {topics:t,steps:{},scores:{},min:{},localAt:0};
+}
+/* due today, hardest and soonest-examined first */
+function queue(){
+  const k=iso(TODAY);
+  return Object.entries(S.topics).filter(([,t])=>t.due<=k)
+    .map(([id,t])=>{const ex=EXAMS.find(e=>e.id===t.g&&e.c===t.c);
+      return {id,...t,dd:ex&&ex.d?daysTo(ex.d):999}})
+    .sort((a,b)=>a.dd-b.dd||a.lv-b.lv);
+}
+function rate(id,lv){
+  const t=S.topics[id];t.lv=lv;t.due=addDays(TODAY,GAP[lv]||1);
+  S.min[iso(TODAY)]=(S.min[iso(TODAY)]||0)+1;
+  save();render();
+}
+
+function vDrill(){
+  const q=queue(),top=q[0],doneToday=S.min[iso(TODAY)]||0;
+  const all=Object.values(S.topics),solid=all.filter(t=>t.lv>=2).length;
+  if(!top)return `<section><div class="big"><b>${doneToday}</b>
+    <p class="mut" style="margin-top:8px">reps today \u00b7 queue is empty</p></div>
+    <p class="mut" style="margin-top:14px">Nothing is due. Go to Topics and pull something forward, or stop \u2014 finishing the queue is the point.</p></section>`;
+  const ex=EXAMS.find(e=>e.id===top.g&&e.c===top.c);
+  return `<section>
+   <div class="q"><span class="c" style="color:${COURSES[top.c].c}">${COURSES[top.c].code}</span>
+    <div class="t">${top.n}</div>
+    <p class="why">${ex?(ex.d?`${daysTo(ex.d)} days to ${ex.n}`:ex.n+' \u00b7 date unknown'):''} \u00b7 now: ${LV[top.lv]}</p>
+    <p class="mut" style="margin-top:10px">Close everything. Do it from blank. Then rate honestly \u2014 the schedule is only as good as the rating.</p>
+    <div class="rate">
+      <button class="btn bad" data-r="${top.id}:1">Couldn\u2019t do it</button>
+      <button class="btn" data-r="${top.id}:2">Got there, slowly</button>
+      <button class="btn go" data-r="${top.id}:3">Clean, could teach it</button>
+      <button class="btn sm" data-skip="${top.id}">Skip</button>
+    </div></div>
+   <div class="big"><b>${q.length}</b><p class="mut" style="margin-top:6px">left in today\u2019s queue \u00b7 ${doneToday} done \u00b7 ${solid}/${all.length} solid overall</p></div>
+  </section>`;
+}
+function vTopics(){
+  const cs=['all',...Object.keys(COURSES)];
+  const list=Object.entries(S.topics).filter(([,t])=>course==='all'||t.c===course);
+  const cnt=l=>list.filter(([,t])=>t.lv===l).length;
+  return `<section><div class="head"><h2>Topics</h2>
+    <span class="eyebrow">${list.length} total</span></div>
+   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+    ${cs.map(c=>`<button class="btn sm ${course===c?'go':''}" data-c="${c}">${c==='all'?'All':COURSES[c].code}</button>`).join('')}</div>
+   <div class="meter">
+    ${[[0,'#7C9686'],[1,'#FF4D6D'],[2,'#FFC24B'],[3,'#9DFF57']].map(([l,col])=>
+      `<i style="width:${list.length?cnt(l)/list.length*100:0}%;background:${col}"></i>`).join('')}</div>
+   <p class="mut" style="margin-bottom:14px">${cnt(0)} not started \u00b7 ${cnt(1)} shaky \u00b7 ${cnt(2)} solid \u00b7 ${cnt(3)} can teach</p>
+   ${list.map(([id,t])=>`<div class="row">
+     <span class="lv l${t.lv}">${LV[t.lv]}</span>
+     <span class="nm">${t.n}<br><span class="due" style="color:${COURSES[t.c].c}">${COURSES[t.c].code}</span>
+       <span class="due"> \u00b7 due ${t.due<=iso(TODAY)?'now':t.due}</span></span>
+     <button class="btn sm" data-now="${id}">drill</button></div>`).join('')}
+  </section>`;
+}
+function vExams(){
+  return `<section><div class="head"><h2>Exams</h2><span class="eyebrow">protocol runs backwards from the date</span></div>
+  ${EXAMS.filter(e=>!e.d||daysTo(e.d)>=0).map(e=>{
+    const n=e.d?daysTo(e.d):null;
+    const topics=Object.entries(S.topics).filter(([,t])=>t.c===e.c&&t.g===e.id);
+    const ready=topics.filter(([,t])=>t.lv>=2).length;
+    return `<div class="card ${n!==null&&n<=14?'soon':''}">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+        <div><h3>${e.n}</h3><p class="mut">${e.d?parse(e.d).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}):'date unknown \u2014 ask'}${e.p?' \u00b7 provisional':''}</p></div>
+        <div class="d ${n!==null&&n<=14?'soon':''}">${n!==null?n:'?'}</div></div>
+      <div class="meter"><i style="width:${topics.length?ready/topics.length*100:0}%;background:var(--lime)"></i>
+        <i style="width:${topics.length?(1-ready/topics.length)*100:0}%;background:#26402F"></i></div>
+      <p class="mut">${ready} of ${topics.length} topics at solid or better</p>
+      ${e.d?`<div class="plan">${PROTO.map(([off,txt])=>{
+        const day=addDays(parse(e.d),-off),k=e.id+':'+off,done=S.steps[k];
+        const state=done?'done':day===iso(TODAY)?'now':day<iso(TODAY)?'past':'';
+        return `<div class="step ${state}"><b>${off}d out</b><span>${txt}</span>
+          <button class="btn sm ${done?'':'go'}" data-step="${k}">${done?'undo':'done'}</button></div>`}).join('')}</div>`:''}
+    </div>`}).join('')}</section>`;
+}
+function vGrades(){
+  return `<section><div class="head"><h2>Grades</h2><span class="eyebrow">what an A still needs</span></div>
+  <p class="mut" style="margin-bottom:14px">Enter what you have back so far. Blank = not graded yet.
+   "Need" is the average you must hit on everything still ungraded to finish at 90.</p>
+  ${Object.entries(WEIGHTS).map(([c,rows])=>{
+    let earned=0,counted=0;
+    rows.forEach(([lbl,w])=>{const v=S.scores[c+':'+lbl];
+      if(v!==undefined&&v!==''){earned+=(+v)*w/100;counted+=w}});
+    const remain=100-counted;
+    const need=remain>0?Math.max(0,(90-earned)/remain*100):null;
+    const bad=need!==null&&need>100;
+    return `<div class="card">
+      <h3 style="color:${COURSES[c].c}">${COURSES[c].code} \u2014 ${COURSES[c].name}</h3>
+      <div class="gr"><span class="h">Component</span><span class="h">Weight</span><span class="h">Your %</span></div>
+      ${rows.map(([lbl,w])=>`<div class="gr"><span>${lbl}</span><span class="mut">${w}%</span>
+        <input data-sc="${c}:${lbl}" type="number" min="0" max="100" placeholder="\u2014" value="${S.scores[c+':'+lbl]??''}"></div>`).join('')}
+      <p style="margin-top:12px"><span class="mut">graded so far ${counted}% \u00b7 banked ${earned.toFixed(1)} pts</span><br>
+      <span class="need" style="color:${bad?'var(--flare)':'var(--lime)'}">${need===null?'\u2014':need.toFixed(0)+'%'}</span>
+      <span class="mut"> needed on the remaining ${remain}% for an A${bad?' \u2014 not reachable, aim for the B+':''}</span></p>
+    </div>`}).join('')}
+  <p class="mut">CS 124 weights are the five-part split. The syllabus prints a second, different one \u2014 confirm which is real before trusting this.</p>
+  </section>`;
+}
+function render(){
+  const all=Object.values(S.topics),solid=all.filter(t=>t.lv>=2).length;
+  $('goal').innerHTML=`Goal <b>all A\u2019s</b><br>${solid}/${all.length} topics solid<br>${queue().length} due today`;
+  $('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join('');
+  $('view').innerHTML={drill:vDrill,topics:vTopics,exams:vExams,grades:vGrades}[tab]();
+  const on=(q,f)=>document.querySelectorAll(q).forEach(f);
+  on('[data-tab]',b=>b.onclick=()=>{
+    if(b.dataset.tab==='board'){location.href='/';return}
+    tab=b.dataset.tab;render()});
+  on('[data-r]',b=>b.onclick=()=>{const[id,lv]=b.dataset.r.split(':');rate(id,+lv)});
+  on('[data-skip]',b=>b.onclick=()=>{S.topics[b.dataset.skip].due=addDays(TODAY,1);save();render()});
+  on('[data-c]',b=>b.onclick=()=>{course=b.dataset.c;render()});
+  on('[data-now]',b=>b.onclick=()=>{S.topics[b.dataset.now].due=iso(TODAY);tab='drill';save();render()});
+  on('[data-step]',b=>b.onclick=()=>{const k=b.dataset.step;S.steps[k]=!S.steps[k];save();render()});
+  on('[data-sc]',i=>i.onchange=()=>{S.scores[i.dataset.sc]=i.value;save();render()});
+  const e=$('stor');
+  const m={synced:['Saved to this chat',''],local:['Saved in this browser',''],memory:['NOT SAVING \u2014 export a backup','warn']}[mode];
+  e.innerHTML='<b class="'+m[1]+'">'+m[0]+'</b>';
+}
+$('exp').onclick=()=>{const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));
+  a.download='drill-'+iso(TODAY)+'.json';a.click();URL.revokeObjectURL(a.href)};
+$('imp').onchange=e=>{const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{S=JSON.parse(t);save();render()}).catch(()=>alert('Not a valid backup.'));e.target.value=''};
+$('reset').onclick=()=>{if(!confirm('Wipe all ratings and scores?'))return;S=seed();save();render()};
+setInterval(()=>{const n=new Date();if(iso(n)!==iso(TODAY)){TODAY=n;render()}},30000);
+(async()=>{
+  await initStore();
+  const saved=await loadState();
+  S=saved||seed();
+  const fresh=seed();                       // pick up topics added in later versions
+  Object.keys(fresh.topics).forEach(k=>{if(!S.topics[k])S.topics[k]=fresh.topics[k]});
+  S.steps=S.steps||{};S.scores=S.scores||{};S.min=S.min||{};
+  render();
+})();
+</script>
+</body>
+</html>
